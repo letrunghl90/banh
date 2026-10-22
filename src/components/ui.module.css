@@ -1,0 +1,229 @@
+/* Kiểu dùng chung cho các trang sau đăng nhập (phụ huynh, học sinh). */
+.page {
+  display: grid;
+  gap: 24px;
+}
+
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.header h1 {
+  margin: 0;
+}
+
+.muted {
+  color: var(--muted);
+  margin: 0;
+}
+
+.card {
+  display: grid;
+  gap: 16px;
+  padding: 20px;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 1px 3px rgb(15 23 42 / 0.08);
+}
+
+.card h2 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.list {
+  display: grid;
+  gap: 12px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+}
+
+.itemMain {
+  flex: 1 1 160px;
+  min-width: 0;
+}
+
+.itemMain strong {
+  display: block;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.form {
+  display: grid;
+  gap: 14px;
+}
+
+.label {
+  display: grid;
+  gap: 6px;
+  font-weight: 600;
+}
+
+.input {
+  font: inherit;
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  background: #fff;
+  color: #111827;
+}
+
+.input:focus {
+  outline: 2px solid var(--brand);
+  outline-offset: 1px;
+}
+
+.pin {
+  letter-spacing: 0.5em;
+  font-size: 24px;
+  text-align: center;
+  max-width: 200px;
+}
+
+.button,
+.primary,
+.danger {
+  font: inherit;
+  padding: 10px 16px;
+  border-radius: 10px;
+  border: 1px solid #d1d5db;
+  background: #fff;
+  color: #111827;
+  cursor: pointer;
+  display: inline-block;
+  text-decoration: none;
+}
+
+.primary {
+  border-color: var(--brand);
+  background: var(--brand);
+  color: #fff;
+  font-weight: 600;
+}
+
+.danger {
+  border-color: #fecaca;
+  color: #b91c1c;
+}
+
+.button:disabled,
+.primary:disabled,
+.danger:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.error {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
+.notice {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #ecfdf5;
+  color: #047857;
+}
+
+.avatars {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  border: 0;
+  padding: 0;
+  margin: 0;
+}
+
+.avatarOption {
+  border: 2px solid transparent;
+  border-radius: 50%;
+  padding: 2px;
+  background: none;
+  cursor: pointer;
+}
+
+.avatarOption[aria-pressed='true'] {
+  border-color: var(--brand);
+}
+
+.avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  font-size: 26px;
+  flex: none;
+}
+
+.avatarLarge {
+  width: 88px;
+  height: 88px;
+  font-size: 48px;
+}
+
+.girl01 {
+  background: #fce7f3;
+}
+.girl02 {
+  background: #ede9fe;
+}
+.girl03 {
+  background: #ffedd5;
+}
+.boy01 {
+  background: #dbeafe;
+}
+.boy02 {
+  background: #dcfce7;
+}
+.boy03 {
+  background: #fef9c3;
+}
+
+.profiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 16px;
+}
+
+.profile {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: 16px;
+  border: 2px solid #e5e7eb;
+  border-radius: 16px;
+  background: #fff;
+  font: inherit;
+  cursor: pointer;
+}
+
+.profile[aria-pressed='true'] {
+  border-color: var(--brand);
+}

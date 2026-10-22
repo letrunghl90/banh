@@ -43,9 +43,9 @@
 | GET | `/me` | P, S, A | Thông tin phiên, chế độ, gia đình, trạng thái gói |
 | GET · POST | `/students` | P | Danh sách/tạo hồ sơ con |
 | PATCH · DELETE | `/students/{id}` | P | Sửa/xóa hồ sơ con |
-| POST | `/students/{id}/pin` | P | Đặt lại PIN |
-| POST | `/session/student` | P | Vào chế độ học sinh: `{ studentId, pin }` |
-| POST | `/session/parent` | S | Về chế độ phụ huynh: `{ password }` |
+| POST | `/students/{id}/pin` | P | Đặt lại PIN; đồng thời mở khóa nếu con nhập sai quá 5 lần |
+| POST | `/session/student` | P | Vào chế độ học sinh: `{ studentId, pin }`. Cấp token phiên mới, thu hồi token cũ, giữ nguyên hạn phiên |
+| POST | `/session/parent` | S | Về chế độ phụ huynh: `{ password }`. Sai 5 lần/15 phút trả 429. Cấp token mới như trên |
 | POST | `/students/{id}/export` | P | Yêu cầu xuất dữ liệu (job nền, gửi link) |
 | POST | `/consents` | P | Ghi nhận đồng ý |
 

@@ -86,3 +86,19 @@ describe('IP người gọi', () => {
     expect(clientIp(h({}))).toBe('unknown');
   });
 });
+
+describe('dữ liệu hồ sơ con', () => {
+  it('PIN đúng 4 chữ số', async () => {
+    const { pinSchema } = await import('@/modules/account/schema');
+    expect(pinSchema.safeParse('0123').success).toBe(true);
+    for (const bad of ['123', '12345', '12a4', ' 1234', '١٢٣٤']) {
+      expect(pinSchema.safeParse(bad).success).toBe(false);
+    }
+  });
+
+  it('sửa hồ sơ phải có ít nhất một trường; tên trường rỗng thành null', async () => {
+    const { updateStudentSchema } = await import('@/modules/account/schema');
+    expect(updateStudentSchema.safeParse({}).success).toBe(false);
+    expect(updateStudentSchema.parse({ schoolName: '  ' })).toEqual({ schoolName: null });
+  });
+});
