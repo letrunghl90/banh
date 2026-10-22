@@ -64,3 +64,12 @@ describe('publicRoute / authedRoute', () => {
     expect(await res.json()).toEqual({ id: '42' });
   });
 });
+
+describe('readCookie', () => {
+  it('cookie sai định dạng trả undefined, không ném lỗi', async () => {
+    const { readCookie } = await import('@/lib/auth/cookies');
+    const req = new Request('http://x', { headers: { cookie: 'ccl_session=%E0; a=b%20c' } });
+    expect(readCookie(req, 'ccl_session')).toBeUndefined();
+    expect(readCookie(req, 'a')).toBe('b c');
+  });
+});

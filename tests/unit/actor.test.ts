@@ -17,7 +17,7 @@ function session(over: Partial<SessionRecord> = {}): SessionRecord {
     studentId: null,
     expiresAt: future,
     revokedAt: null,
-    user: { id: 'u1', familyId: 'f1', status: 'active', deletedAt: null },
+    user: { id: 'u1', familyId: 'f1', role: 'parent', status: 'active', deletedAt: null },
     student: null,
     ...over,
   };
@@ -44,15 +44,21 @@ describe('actorFromSession', () => {
     ['hết hạn', session({ expiresAt: past })],
     [
       'tài khoản bị khóa',
-      session({ user: { id: 'u1', familyId: 'f1', status: 'locked', deletedAt: null } }),
+      session({
+        user: { id: 'u1', familyId: 'f1', role: 'parent', status: 'locked', deletedAt: null },
+      }),
     ],
     [
       'tài khoản đã xóa',
-      session({ user: { id: 'u1', familyId: 'f1', status: 'active', deletedAt: past } }),
+      session({
+        user: { id: 'u1', familyId: 'f1', role: 'parent', status: 'active', deletedAt: past },
+      }),
     ],
     [
       'phụ huynh không có gia đình',
-      session({ user: { id: 'u1', familyId: null, status: 'active', deletedAt: null } }),
+      session({
+        user: { id: 'u1', familyId: null, role: 'parent', status: 'active', deletedAt: null },
+      }),
     ],
     ['học sinh thiếu hồ sơ', session({ mode: 'student', studentId: 'st1', student: null })],
     [
@@ -78,10 +84,35 @@ describe('actorFromSession', () => {
     const a = actorFromSession(
       session({
         mode: 'admin',
-        user: { id: 'a1', familyId: null, status: 'active', deletedAt: null },
+        user: { id: 'a1', familyId: null, role: 'admin', status: 'active', deletedAt: null },
       }),
     );
     expect(a).toEqual({ mode: 'admin', sessionId: 's1', userId: 'a1' });
+  });
+
+  it('phiên quản trị gắn với tài khoản phụ huynh bị từ chối', () => {
+    expect(actorFromSession(session({ mode: 'admin' }))).toBeNull();
+  });
+
+  it('phiên phụ huynh hoặc học sinh gắn với tài khoản quản trị bị từ chối', () => {
+    const adminUser = {
+      id: 'a1',
+      familyId: 'f1',
+      role: 'admin' as const,
+      status: 'active',
+      deletedAt: null,
+    };
+    expect(actorFromSession(session({ user: adminUser }))).toBeNull();
+    expect(
+      actorFromSession(
+        session({
+          mode: 'student',
+          studentId: 'st1',
+          student: { familyId: 'f1', deletedAt: null },
+          user: adminUser,
+        }),
+      ),
+    ).toBeNull();
   });
 });
 
@@ -97,6 +128,14 @@ describe('requireActor', () => {
         code: 'UNAUTHENTICATED',
       },
     );
+  });
+
+  it('cookie phiên sai định dạng: 401 chứ không phải lỗi 500', async () => {
+    await expect(
+      requireActor(reqWithCookie('%E0'), ['parent'], async () => null),
+    ).rejects.toMatchObject({
+      code: 'UNAUTHENTICATED',
+    });
   });
 
   it('token sai: 401', async () => {

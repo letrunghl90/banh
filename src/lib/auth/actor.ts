@@ -17,7 +17,13 @@ export interface SessionRecord {
   studentId: string | null;
   expiresAt: Date;
   revokedAt: Date | null;
-  user: { id: string; familyId: string | null; status: string; deletedAt: Date | null };
+  user: {
+    id: string;
+    familyId: string | null;
+    role: 'parent' | 'admin';
+    status: string;
+    deletedAt: Date | null;
+  };
   student: { familyId: string; deletedAt: Date | null } | null;
 }
 
@@ -32,7 +38,7 @@ export const prismaSessionLookup: SessionLookup = (tokenHash) =>
       studentId: true,
       expiresAt: true,
       revokedAt: true,
-      user: { select: { id: true, familyId: true, status: true, deletedAt: true } },
+      user: { select: { id: true, familyId: true, role: true, status: true, deletedAt: true } },
       student: { select: { familyId: true, deletedAt: true } },
     },
   });
@@ -41,6 +47,8 @@ export const prismaSessionLookup: SessionLookup = (tokenHash) =>
 export function actorFromSession(s: SessionRecord, now: Date = new Date()): Actor | null {
   if (s.revokedAt || s.expiresAt <= now) return null;
   if (s.user.status !== 'active' || s.user.deletedAt) return null;
+  // Phòng thủ nhiều lớp: chế độ phiên phải khớp vai trò tài khoản.
+  if ((s.mode === 'admin') !== (s.user.role === 'admin')) return null;
 
   if (s.mode === 'admin') return { mode: 'admin', sessionId: s.id, userId: s.user.id };
 

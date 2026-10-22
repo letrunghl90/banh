@@ -24,7 +24,7 @@
 | `npm run lint` | PASS |
 | `npm run typecheck` | PASS |
 | `npm run format:check` | PASS |
-| `npm test` (unit) | PASS, 56/56 |
+| `npm test` (unit) | PASS, 60/60 |
 | `npm run test:integration` | PASS, 13/13 |
 | `npm run build` | PASS |
 | `prisma migrate deploy` trên DB trống + `migrate diff` | PASS, không lệch |
