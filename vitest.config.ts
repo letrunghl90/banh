@@ -12,7 +12,7 @@ export default defineConfig({
           name: 'unit',
           include: ['tests/unit/**/*.test.ts'],
           environment: 'node',
-          env: { LOG_LEVEL: 'warn' },
+          env: { LOG_LEVEL: 'warn', AUTH_SECRET: 'test-only-not-a-real-secret-0123456789abcdef' },
         },
       },
       {
@@ -25,7 +25,11 @@ export default defineConfig({
           // Dùng chung một database test, chạy trong một tiến trình để không giẫm dữ liệu của nhau.
           pool: 'forks',
           poolOptions: { forks: { singleFork: true } },
-          env: { LOG_LEVEL: 'warn' },
+          env: {
+            LOG_LEVEL: 'warn',
+            MAIL_TRANSPORT: 'memory',
+            AUTH_SECRET: 'test-only-not-a-real-secret-0123456789abcdef',
+          },
           testTimeout: 30_000,
           hookTimeout: 60_000,
         },

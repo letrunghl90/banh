@@ -3,6 +3,8 @@ import { existsSync } from 'node:fs';
 // Nạp .env nếu có (máy phát triển). Trên CI biến môi trường được đặt sẵn.
 if (existsSync('.env')) process.loadEnvFile('.env');
 if (process.env.DATABASE_URL_TEST) process.env.DATABASE_URL = process.env.DATABASE_URL_TEST;
+// Test đọc mã OTP từ hộp thư trong bộ nhớ, kể cả khi .env đặt MAIL_TRANSPORT khác.
+process.env.MAIL_TRANSPORT = 'memory';
 
 const url = process.env.DATABASE_URL;
 if (!url) throw new Error('Thiếu DATABASE_URL_TEST (hoặc DATABASE_URL) cho test tích hợp');

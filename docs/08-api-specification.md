@@ -34,10 +34,11 @@
 | Method | Đường dẫn | Quyền | Mô tả |
 | --- | --- | --- | --- |
 | POST | `/auth/register` | - | Đăng ký phụ huynh |
-| POST | `/auth/verify` | - | Xác thực OTP |
+| POST | `/auth/verify` | - | Xác thực OTP; thành công thì tạo gia đình, bắt đầu dùng thử và đăng nhập |
+| POST | `/auth/verify/resend` | - | Gửi lại mã xác thực: `{ email }`, luôn trả 200 |
 | POST | `/auth/login` | - | Đăng nhập |
 | GET | `/auth/google/callback` | - | Đăng nhập Google |
-| POST | `/auth/logout` | P, S | Đăng xuất |
+| POST | `/auth/logout` | P, S, A | Đăng xuất |
 | POST | `/auth/password/forgot` · `/auth/password/reset` | - | Quên/đặt lại mật khẩu |
 | GET | `/me` | P, S, A | Thông tin phiên, chế độ, gia đình, trạng thái gói |
 | GET · POST | `/students` | P | Danh sách/tạo hồ sơ con |

@@ -8,7 +8,16 @@ const API_DIR = path.resolve('src/app/api');
 const MODULES_DIR = path.resolve('src/modules');
 
 /** Route công khai được duyệt. Thêm route mới vào đây phải có lý do trong review. */
-const PUBLIC_ROUTES = new Set(['v1/health/route.ts']);
+const PUBLIC_ROUTES = new Set([
+  'v1/health/route.ts',
+  // Tài khoản (T-202, T-204): có giới hạn tần suất theo IP và theo email.
+  'v1/auth/register/route.ts',
+  'v1/auth/verify/route.ts',
+  'v1/auth/verify/resend/route.ts',
+  'v1/auth/login/route.ts',
+  'v1/auth/password/forgot/route.ts',
+  'v1/auth/password/reset/route.ts',
+]);
 
 const METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS'];
 

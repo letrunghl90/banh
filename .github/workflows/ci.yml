@@ -38,6 +38,9 @@ jobs:
       DATABASE_URL_TEST: postgresql://ccl:ccl@localhost:5432/ccl_test?schema=public
       REDIS_URL: redis://localhost:6379
       NEXT_TELEMETRY_DISABLED: '1'
+      # Giá trị giả cho CI, không phải secret thật.
+      AUTH_SECRET: ci-only-not-a-real-secret-0123456789abcdef
+      MAIL_TRANSPORT: memory
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
