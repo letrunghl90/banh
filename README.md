@@ -2,7 +2,7 @@
 
 Ứng dụng web giúp phụ huynh đồng hành cùng con học Toán và Tiếng Việt lớp 3. Tài liệu phân tích và thiết kế nằm trong [`docs/`](docs/) (01 đến 13).
 
-Trạng thái: **milestone 2**. Đã có nền tảng kỹ thuật và tài khoản phụ huynh (đăng ký bằng email, mã OTP, đăng nhập, đăng xuất, quên mật khẩu). Chưa có hồ sơ con, bài học, bài tập. Xem báo cáo tiến độ ở [`docs/reports/`](docs/reports/).
+Trạng thái: **milestone 2**. Đã có nền tảng kỹ thuật, tài khoản phụ huynh (đăng ký bằng email, mã OTP, đăng nhập, đăng xuất, quên mật khẩu), hồ sơ con có PIN và chuyển giữa chế độ phụ huynh và học sinh. Chưa có bài học, bài tập. Xem báo cáo tiến độ ở [`docs/reports/`](docs/reports/).
 
 ## Công nghệ
 
