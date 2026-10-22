@@ -4,7 +4,7 @@
 - Ước tính tính bằng **ngày công lập trình viên** (1 người, 1 ngày làm việc), gồm cả viết test và tự review. Đây là ước tính ban đầu từ phạm vi đã mô tả, chưa có dữ liệu năng suất của đội; sai số dự kiến ±30%. Sẽ ước tính lại sau khi trả lời Q-01, Q-02, Q-09.
 - Độ phức tạp: S (≤ 2 ngày), M (3 đến 5 ngày), L (6 đến 10 ngày).
 - Cột "AC": mã tiêu chí nghiệm thu ở tài liệu 13. Cột "Test": U unit, I integration, E end-to-end, S security.
-- Trạng thái: **Xong** T-101, T-102, T-103 (chờ CI chạy lần đầu), T-104, T-105, T-109, T-201, T-301 (xem docs/reports/m2-01-nen-tang.md). Các task còn lại: **Chưa bắt đầu**.
+- Trạng thái: **Xong** T-101, T-102, T-103 (chờ CI chạy lần đầu), T-104, T-105, T-109, T-201, T-301 (xem docs/reports/m2-01-nen-tang.md); T-202 (phần email), T-204, T-206 (xem docs/reports/e02-01-tai-khoan.md). Các task còn lại: **Chưa bắt đầu**.
 
 ## E00. Chốt yêu cầu (milestone 1)
 

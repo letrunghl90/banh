@@ -1,9 +1,14 @@
 import type { Redis } from 'ioredis';
 import { AppError } from './errors';
+import { getRedis } from './redis';
 
 export interface RateLimitStore {
   /** Tăng bộ đếm của khóa trong cửa sổ hiện tại, trả số lần đã đếm. */
   hit(key: string, windowSec: number): Promise<number>;
+  /** Đọc bộ đếm hiện tại mà không tăng (0 nếu chưa có hoặc đã hết cửa sổ). */
+  peek(key: string): Promise<number>;
+  /** Xóa bộ đếm, ví dụ sau khi đăng nhập đúng. */
+  reset(key: string): Promise<void>;
 }
 
 export class RedisRateLimitStore implements RateLimitStore {
@@ -17,6 +22,14 @@ export class RedisRateLimitStore implements RateLimitStore {
     const res = await this.redis.multi().incr(k).expire(k, windowSec, 'NX').exec();
     const count = res?.[0]?.[1];
     return typeof count === 'number' ? count : Number(count);
+  }
+
+  async peek(key: string): Promise<number> {
+    return Number((await this.redis.get(this.prefix + key)) ?? 0);
+  }
+
+  async reset(key: string): Promise<void> {
+    await this.redis.del(this.prefix + key);
   }
 }
 
@@ -36,6 +49,20 @@ export class MemoryRateLimitStore implements RateLimitStore {
     bucket.count += 1;
     return bucket.count;
   }
+
+  async peek(key: string): Promise<number> {
+    const bucket = this.buckets.get(key);
+    return bucket && bucket.resetAt > this.now() ? bucket.count : 0;
+  }
+
+  async reset(key: string): Promise<void> {
+    this.buckets.delete(key);
+  }
+}
+
+/** Kho đếm của ứng dụng, dùng kết nối Redis chung. */
+export function getRateLimitStore(): RateLimitStore {
+  return new RedisRateLimitStore(getRedis());
 }
 
 export interface RateLimitRule {

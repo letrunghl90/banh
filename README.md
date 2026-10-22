@@ -2,7 +2,7 @@
 
 Ứng dụng web giúp phụ huynh đồng hành cùng con học Toán và Tiếng Việt lớp 3. Tài liệu phân tích và thiết kế nằm trong [`docs/`](docs/) (01 đến 13).
 
-Trạng thái: **milestone 2, nền tảng kỹ thuật**. Chưa có chức năng nghiệp vụ (đăng ký, làm bài...). Xem báo cáo tiến độ ở [`docs/reports/`](docs/reports/).
+Trạng thái: **milestone 2**. Đã có nền tảng kỹ thuật và tài khoản phụ huynh (đăng ký bằng email, mã OTP, đăng nhập, đăng xuất, quên mật khẩu). Chưa có hồ sơ con, bài học, bài tập. Xem báo cáo tiến độ ở [`docs/reports/`](docs/reports/).
 
 ## Công nghệ
 
@@ -22,7 +22,9 @@ npm run dev                     # http://localhost:3000
 npm run worker                  # tiến trình chạy nền (cửa sổ khác)
 ```
 
-Tài khoản mẫu sau khi seed: `phuhuynh.mau@example.com` / `MatKhauMau123`, con "[MẪU] Minh Anh" có PIN `1234`. Màn đăng nhập sẽ có ở task T-202.
+Tài khoản mẫu sau khi seed: `phuhuynh.mau@example.com` / `MatKhauMau123`, con "[MẪU] Minh Anh" có PIN `1234`. Đăng nhập ở http://localhost:3000/dang-nhap.
+
+Khi chạy trên máy, email (mã OTP) được in ra cửa sổ chạy `npm run dev` (`MAIL_TRANSPORT="console"`). Chế độ này bị chặn khi `NODE_ENV=production`; gửi email thật cần chọn nhà cung cấp (chưa làm). `AUTH_SECRET` trong `.env.example` chỉ dùng trên máy; môi trường thật phải tạo khóa riêng (hướng dẫn trong file).
 
 ## Kiểm tra chất lượng
 

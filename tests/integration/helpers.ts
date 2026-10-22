@@ -52,18 +52,33 @@ export function requestWithSession(url: string, token: string) {
 }
 
 export async function cleanupTestData() {
+  // Dữ liệu test: gia đình có tên bắt đầu "[TEST]" hoặc người dùng có email @test.local
+  // (tài khoản tạo qua API đăng ký).
+  const testUsers = await prisma.user.findMany({
+    where: { email: { endsWith: '@test.local' } },
+    select: { id: true, familyId: true, email: true },
+  });
   const families = await prisma.family.findMany({
     where: { name: { startsWith: '[TEST]' } },
     select: { id: true },
   });
-  const ids = families.map((f) => f.id);
+  const ids = [
+    ...new Set([
+      ...families.map((f) => f.id),
+      ...testUsers.flatMap((u) => (u.familyId ? [u.familyId] : [])),
+    ]),
+  ];
   const users = await prisma.user.findMany({
-    where: { familyId: { in: ids } },
+    where: { OR: [{ familyId: { in: ids } }, { id: { in: testUsers.map((u) => u.id) } }] },
     select: { id: true },
   });
-  await prisma.session.deleteMany({ where: { userId: { in: users.map((u) => u.id) } } });
-  await prisma.consent.deleteMany({ where: { userId: { in: users.map((u) => u.id) } } });
+  const userIds = users.map((u) => u.id);
+  await prisma.session.deleteMany({ where: { userId: { in: userIds } } });
+  await prisma.consent.deleteMany({ where: { userId: { in: userIds } } });
+  await prisma.verificationCode.deleteMany({
+    where: { target: { in: testUsers.flatMap((u) => (u.email ? [u.email] : [])) } },
+  });
   await prisma.student.deleteMany({ where: { familyId: { in: ids } } });
-  await prisma.user.deleteMany({ where: { familyId: { in: ids } } });
+  await prisma.user.deleteMany({ where: { id: { in: userIds } } });
   await prisma.family.deleteMany({ where: { id: { in: ids } } });
 }

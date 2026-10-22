@@ -26,6 +26,8 @@ enum UserRole {
 }
 
 enum UserStatus {
+  // Vừa đăng ký, chưa xác thực email/số điện thoại: chưa đăng nhập được (T-202).
+  pending
   active
   locked
   deleted
