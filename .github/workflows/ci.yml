@@ -1,0 +1,72 @@
+# T-103 / AC-PLT-03: mỗi pull request chạy lint, typecheck, unit, integration, build.
+# Để "PR đỏ không merge được": bật branch protection cho main và đánh dấu job "ci" là bắt buộc.
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: ccl
+          POSTGRES_PASSWORD: ccl
+          POSTGRES_DB: ccl_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U ccl" --health-interval 5s --health-timeout 5s --health-retries 10
+      redis:
+        image: redis:7
+        ports: ['6379:6379']
+        options: >-
+          --health-cmd "redis-cli ping" --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DATABASE_URL: postgresql://ccl:ccl@localhost:5432/ccl_test?schema=public
+      DATABASE_URL_TEST: postgresql://ccl:ccl@localhost:5432/ccl_test?schema=public
+      REDIS_URL: redis://localhost:6379
+      NEXT_TELEMETRY_DISABLED: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npx prisma generate
+      - name: Kiểm tra định dạng
+        run: npm run format:check
+      - name: Lint
+        run: npm run lint
+      - name: Type check
+        run: npm run typecheck
+      - name: Unit test
+        run: npm test
+      - name: Migration trên database trống
+        run: npx prisma migrate deploy
+      - name: Kiểm tra schema khớp migration
+        env:
+          PGPASSWORD: ccl
+        run: |
+          psql -h localhost -U ccl -d ccl_test -c 'CREATE DATABASE ccl_shadow'
+          npx prisma migrate diff --from-migrations prisma/migrations \
+            --to-schema-datamodel prisma/schema.prisma \
+            --shadow-database-url postgresql://ccl:ccl@localhost:5432/ccl_shadow --exit-code
+      - name: Integration test
+        run: npm run test:integration
+      - name: Build
+        run: npm run build
+      - name: Kiểm tra lỗ hổng thư viện chạy production
+        run: npm audit --omit=dev --audit-level=critical

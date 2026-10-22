@@ -1,0 +1,18 @@
+# PostgreSQL và Redis cho máy phát triển. Chạy: docker compose up -d
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: ccl
+      POSTGRES_PASSWORD: ccl
+      POSTGRES_DB: ccl_dev
+    ports: ['5432:5432']
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./scripts/init-test-db.sql:/docker-entrypoint-initdb.d/init-test-db.sql:ro
+  redis:
+    image: redis:7
+    ports: ['6379:6379']
+
+volumes:
+  pgdata:

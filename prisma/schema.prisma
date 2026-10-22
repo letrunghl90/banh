@@ -1,0 +1,384 @@
+// Thiết kế theo docs/07-database-design.md.
+// Milestone 2 gồm: tài khoản và gia đình (T-201), nội dung (T-301).
+// Các bảng học tập, thanh toán, thông báo được thêm ở các task sau (T-501, T-801, T-701).
+// Phần nội dung có thể đổi sau khi xem nội dung có sẵn (Q-02).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ───────────── Tài khoản và gia đình (M01) ─────────────
+
+enum FamilyStatus {
+  trial
+  active
+  expired
+}
+
+enum UserRole {
+  parent
+  admin
+}
+
+enum UserStatus {
+  active
+  locked
+  deleted
+}
+
+enum SessionMode {
+  parent
+  student
+  admin
+}
+
+enum ConsentType {
+  terms
+  privacy
+  camera
+  snapshots
+}
+
+model Family {
+  id             String       @id @default(uuid(7)) @db.Uuid
+  name           String
+  trialStartedAt DateTime     @map("trial_started_at") @db.Timestamptz(3)
+  trialEndsAt    DateTime     @map("trial_ends_at") @db.Timestamptz(3)
+  status         FamilyStatus @default(trial)
+  createdAt      DateTime     @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt      DateTime     @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  users    User[]
+  students Student[]
+
+  @@map("families")
+}
+
+model User {
+  id              String     @id @default(uuid(7)) @db.Uuid
+  familyId        String?    @map("family_id") @db.Uuid
+  role            UserRole
+  fullName        String     @map("full_name")
+  email           String?    @unique
+  phone           String?    @unique
+  passwordHash    String?    @map("password_hash")
+  googleSub       String?    @unique @map("google_sub")
+  emailVerifiedAt DateTime?  @map("email_verified_at") @db.Timestamptz(3)
+  phoneVerifiedAt DateTime?  @map("phone_verified_at") @db.Timestamptz(3)
+  mfaSecretEnc    String?    @map("mfa_secret_enc")
+  status          UserStatus @default(active)
+  deletedAt       DateTime?  @map("deleted_at") @db.Timestamptz(3)
+  createdAt       DateTime   @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt       DateTime   @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  family   Family?   @relation(fields: [familyId], references: [id])
+  sessions Session[]
+  consents Consent[]
+
+  @@index([familyId])
+  @@map("users")
+}
+
+model Student {
+  id             String    @id @default(uuid(7)) @db.Uuid
+  familyId       String    @map("family_id") @db.Uuid
+  displayName    String    @map("display_name")
+  avatarKey      String?   @map("avatar_key")
+  gradeId        String?   @map("grade_id") @db.Uuid
+  schoolName     String?   @map("school_name")
+  pinHash        String?   @map("pin_hash")
+  pinFailedCount Int       @default(0) @map("pin_failed_count")
+  pinLockedUntil DateTime? @map("pin_locked_until") @db.Timestamptz(3)
+  deletedAt      DateTime? @map("deleted_at") @db.Timestamptz(3)
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt      DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  family   Family    @relation(fields: [familyId], references: [id])
+  grade    Grade?    @relation(fields: [gradeId], references: [id])
+  sessions Session[]
+  consents Consent[]
+
+  @@index([familyId])
+  @@map("students")
+}
+
+model Session {
+  id        String      @id @default(uuid(7)) @db.Uuid
+  userId    String      @map("user_id") @db.Uuid
+  // null khi đang ở chế độ phụ huynh hoặc quản trị
+  studentId String?     @map("student_id") @db.Uuid
+  // Chỉ lưu SHA-256 của token, không lưu token gốc (docs/09 mục 2).
+  tokenHash String      @unique @map("token_hash")
+  mode      SessionMode
+  expiresAt DateTime    @map("expires_at") @db.Timestamptz(3)
+  ip        String?
+  userAgent String?     @map("user_agent")
+  revokedAt DateTime?   @map("revoked_at") @db.Timestamptz(3)
+  createdAt DateTime    @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime    @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  user    User     @relation(fields: [userId], references: [id])
+  student Student? @relation(fields: [studentId], references: [id])
+
+  @@index([userId])
+  @@map("sessions")
+}
+
+model VerificationCode {
+  id        String   @id @default(uuid(7)) @db.Uuid
+  // email hoặc số điện thoại
+  target    String
+  purpose   String
+  codeHash  String   @map("code_hash")
+  expiresAt DateTime @map("expires_at") @db.Timestamptz(3)
+  attempts  Int      @default(0)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@index([target, purpose])
+  @@map("verification_codes")
+}
+
+model Consent {
+  id              String      @id @default(uuid(7)) @db.Uuid
+  userId          String      @map("user_id") @db.Uuid
+  studentId       String?     @map("student_id") @db.Uuid
+  type            ConsentType
+  documentVersion String      @map("document_version")
+  grantedAt       DateTime    @map("granted_at") @db.Timestamptz(3)
+  revokedAt       DateTime?   @map("revoked_at") @db.Timestamptz(3)
+  createdAt       DateTime    @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt       DateTime    @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  user    User     @relation(fields: [userId], references: [id])
+  student Student? @relation(fields: [studentId], references: [id])
+
+  @@index([studentId, type])
+  @@map("consents")
+}
+
+// ───────────── Nội dung (M02) ─────────────
+
+enum ContentStatus {
+  draft
+  published
+  archived
+}
+
+enum AssetKind {
+  video
+  pdf
+  image
+}
+
+enum QuestionType {
+  single
+  multiple
+  short
+  true_false
+  essay
+}
+
+enum AssessmentKind {
+  practice
+  homework_set
+}
+
+enum ImportStatus {
+  queued
+  processing
+  completed
+  failed
+}
+
+model Grade {
+  id        String   @id @default(uuid(7)) @db.Uuid
+  name      String
+  order     Int
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  subjects Subject[]
+  students Student[]
+
+  @@map("grades")
+}
+
+model Subject {
+  id        String   @id @default(uuid(7)) @db.Uuid
+  gradeId   String   @map("grade_id") @db.Uuid
+  // math, vietnamese
+  code      String
+  name      String
+  order     Int
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  grade       Grade        @relation(fields: [gradeId], references: [id])
+  topics      Topic[]
+  skills      Skill[]
+  questions   Question[]
+  assessments Assessment[]
+
+  @@unique([gradeId, code])
+  @@map("subjects")
+}
+
+model Topic {
+  id        String        @id @default(uuid(7)) @db.Uuid
+  subjectId String        @map("subject_id") @db.Uuid
+  name      String
+  order     Int
+  status    ContentStatus @default(draft)
+  createdAt DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime      @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  subject Subject  @relation(fields: [subjectId], references: [id])
+  lessons Lesson[]
+
+  @@index([subjectId, order])
+  @@map("topics")
+}
+
+model Lesson {
+  id         String        @id @default(uuid(7)) @db.Uuid
+  topicId    String        @map("topic_id") @db.Uuid
+  code       String        @unique
+  title      String
+  summary    String?
+  // Các bước bài học dạng JSON có cấu trúc, render bằng component (docs/09 mục 4).
+  body       Json
+  estMinutes Int?          @map("est_minutes")
+  order      Int
+  status     ContentStatus @default(draft)
+  version    Int           @default(1)
+  createdAt  DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt  DateTime      @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  topic       Topic         @relation(fields: [topicId], references: [id])
+  assets      LessonAsset[]
+  assessments Assessment[]
+
+  @@index([topicId, order])
+  @@map("lessons")
+}
+
+model LessonAsset {
+  id          String    @id @default(uuid(7)) @db.Uuid
+  lessonId    String    @map("lesson_id") @db.Uuid
+  kind        AssetKind
+  storageKey  String    @map("storage_key")
+  sizeBytes   BigInt?   @map("size_bytes")
+  durationSec Int?      @map("duration_sec")
+  title       String?
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  lesson Lesson @relation(fields: [lessonId], references: [id])
+
+  @@index([lessonId])
+  @@map("lesson_assets")
+}
+
+model Skill {
+  id        String   @id @default(uuid(7)) @db.Uuid
+  subjectId String   @map("subject_id") @db.Uuid
+  code      String
+  name      String
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  subject   Subject         @relation(fields: [subjectId], references: [id])
+  questions QuestionSkill[]
+
+  @@unique([subjectId, code])
+  @@map("skills")
+}
+
+model Question {
+  id          String        @id @default(uuid(7)) @db.Uuid
+  subjectId   String        @map("subject_id") @db.Uuid
+  type        QuestionType
+  prompt      Json
+  options     Json?
+  // Không bao giờ trả về trình duyệt học sinh trước khi nộp bài.
+  answerKey   Json?         @map("answer_key")
+  explanation Json?
+  difficulty  Int           @default(1)
+  version     Int           @default(1)
+  status      ContentStatus @default(draft)
+  createdAt   DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime      @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  subject Subject          @relation(fields: [subjectId], references: [id])
+  skills  QuestionSkill[]
+  items   AssessmentItem[]
+
+  @@index([subjectId, status])
+  @@map("questions")
+}
+
+model QuestionSkill {
+  questionId String @map("question_id") @db.Uuid
+  skillId    String @map("skill_id") @db.Uuid
+
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  skill    Skill    @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@id([questionId, skillId])
+  @@map("question_skills")
+}
+
+model Assessment {
+  id         String         @id @default(uuid(7)) @db.Uuid
+  subjectId  String         @map("subject_id") @db.Uuid
+  lessonId   String?        @map("lesson_id") @db.Uuid
+  kind       AssessmentKind
+  title      String
+  estMinutes Int?           @map("est_minutes")
+  status     ContentStatus  @default(draft)
+  createdAt  DateTime       @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt  DateTime       @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  subject Subject          @relation(fields: [subjectId], references: [id])
+  lesson  Lesson?          @relation(fields: [lessonId], references: [id])
+  items   AssessmentItem[]
+
+  @@index([subjectId, status])
+  @@map("assessments")
+}
+
+model AssessmentItem {
+  assessmentId    String  @map("assessment_id") @db.Uuid
+  questionId      String  @map("question_id") @db.Uuid
+  // Giữ phiên bản câu hỏi đã dùng để kết quả cũ không đổi khi sửa nội dung.
+  questionVersion Int     @map("question_version")
+  order           Int
+  points          Decimal @default(1) @db.Decimal(4, 1)
+
+  assessment Assessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  question   Question   @relation(fields: [questionId], references: [id])
+
+  @@id([assessmentId, order])
+  @@index([questionId])
+  @@map("assessment_items")
+}
+
+model ContentImport {
+  id        String       @id @default(uuid(7)) @db.Uuid
+  fileKey   String       @map("file_key")
+  status    ImportStatus @default(queued)
+  totalRows Int          @default(0) @map("total_rows")
+  errorRows Int          @default(0) @map("error_rows")
+  report    Json?
+  createdBy String       @map("created_by") @db.Uuid
+  createdAt DateTime     @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime     @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@map("content_imports")
+}
