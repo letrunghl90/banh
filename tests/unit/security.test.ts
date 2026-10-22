@@ -14,6 +14,13 @@ describe('CSP và header', () => {
     expect(csp).toContain("object-src 'none'");
   });
 
+  it('style inline chỉ được phép trên máy phát triển', () => {
+    const style = (csp: string) => csp.split('; ').find((d) => d.startsWith('style-src'))!;
+    expect(style(buildCsp('abc', true))).toContain("'unsafe-inline'");
+    expect(style(buildCsp('abc', false))).not.toContain('unsafe-inline');
+    expect(style(buildCsp('abc', false))).toContain("'nonce-abc'");
+  });
+
   it('nonce khác nhau mỗi lần', () => {
     expect(createNonce()).not.toBe(createNonce());
   });
