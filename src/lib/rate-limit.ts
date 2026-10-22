@@ -60,8 +60,22 @@ export class MemoryRateLimitStore implements RateLimitStore {
   }
 }
 
-/** Kho đếm của ứng dụng, dùng kết nối Redis chung. */
+const globalForStore = globalThis as unknown as { memoryRateLimitStore?: MemoryRateLimitStore };
+
+/**
+ * Kho đếm của ứng dụng, dùng kết nối Redis chung.
+ * Máy phát triển không có Redis: đặt `REDIS_URL="memory"` (hoặc để trống) thì đếm trong bộ nhớ
+ * của tiến trình. Production bắt buộc Redis vì nhiều tiến trình phải dùng chung bộ đếm.
+ */
 export function getRateLimitStore(): RateLimitStore {
+  const url = process.env.REDIS_URL;
+  if (url === '' || url === 'memory') {
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('Production cần REDIS_URL trỏ tới Redis thật cho giới hạn tần suất');
+    }
+    globalForStore.memoryRateLimitStore ??= new MemoryRateLimitStore();
+    return globalForStore.memoryRateLimitStore;
+  }
   return new RedisRateLimitStore(getRedis());
 }
 
