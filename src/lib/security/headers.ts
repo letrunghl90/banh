@@ -11,7 +11,9 @@ export function buildCsp(nonce: string, isDev: boolean): string {
   return [
     "default-src 'self'",
     `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${isDev ? " 'unsafe-eval'" : ''}`,
-    `style-src 'self' 'nonce-${nonce}'`,
+    // Máy phát triển: thanh công cụ dev của Next.js dùng style inline, chặn đi thì nó mất định
+    // dạng và làm trang giật. Production vẫn chỉ cho style có nonce.
+    isDev ? "style-src 'self' 'unsafe-inline'" : `style-src 'self' 'nonce-${nonce}'`,
     "img-src 'self' blob: data:",
     "font-src 'self'",
     "connect-src 'self'",
